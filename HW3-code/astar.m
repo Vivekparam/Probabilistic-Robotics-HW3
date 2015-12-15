@@ -60,7 +60,7 @@ ylim([1,size(displaymap,1)]);
 [width, height] = size(envmap) % get width and height
 
 curState = start
-openStates = []
+% openStates = []
 cameFrom = zeroes(width, height, 2) % width, height, and each has a (x, y) camefrom
 
 g_score = Inf(width, height)
@@ -86,18 +86,32 @@ while(curState(1) ~= goal(1) && curState(2) ~= goal(2))
         % if outside bounds, ignore it
         if ~checkLimits(envmap, [col, row])
             continue
-            
-        % if closed already, ignore it
-        if displaymap(curY, curX) == 3
+        end
+        
+        % if its an obstacle, ignore it  
+        if envmap(row, col) == 1
             continue
-            
+        end    
+        % if closed already, ignore it
+        if displaymap(row, col) == 3
+            continue
+        end   
         % calculate length of this path
-        tentative_g_score = g_score
-          
-        if (envmap(curY, curX) == 0 && displaymap(col, row) = 2)
-
+        tentative_g_score = g_score(curY, curX) + 1 % cost of motion always 1
+        
+        if displaymap(row, col) ~= 2
+            displaymap(row, col) = 2 % if not already open, open this node
+        else if tentative_g_score >= g_score(row, col) % this is a worse path to this location, move on
+            continue
+        end 
+        % if we get here, then this is our best path so far
+        cameFrom(row, col) = [curX, curY]
+        g_score(row, col) = tentative_g_score
+        f_score(row, col) = tentative_g_score + distance([col, row], goal)
             
-    curState = curState(0)
+        curState = min_state(f_score)
+      end
+    end 
     % TODO: Run till goal state is reached or there are no open states
     % If state is open -> displaymap(state(2), state(1)) = 2
     % If state is closed -> displaymap(state(2), state(1)) = 3
