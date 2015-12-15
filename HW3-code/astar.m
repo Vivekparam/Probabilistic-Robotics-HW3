@@ -61,7 +61,7 @@ ylim([1,size(displaymap,1)]);
 
 curState = start
 % openStates = []
-cameFrom = zeros(width, height, 2) % width, height, and each has a (x, y) camefrom
+cameFrom = NaN(width, height, 2) % width, height, and each has a (x, y) camefrom
 
 g_score = Inf(width, height)
 g_score(start) = 0
@@ -127,6 +127,8 @@ while(curState(1) ~= goal(1) && curState(2) ~= goal(2))
     % Increment counter
     ct = ct+1;
 end
+
+fpath = reconstruct_path(cameFrom, goal)
 
 % Final display before exit
 figure(fg);
