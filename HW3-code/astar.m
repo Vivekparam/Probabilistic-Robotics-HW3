@@ -72,7 +72,7 @@ f_score(start) = distance(start, goal)
 
 ct = 0;
 while(curState(1) ~= goal(1) && curState(2) ~= goal(2))
-    # extract x and y
+    % extract x and y
     curX = curState(1)
     curY = curState(2)
     
