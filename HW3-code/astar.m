@@ -61,7 +61,7 @@ ylim([1,size(displaymap,1)]);
 
 curState = start
 % openStates = []
-cameFrom = zeroes(width, height, 2) % width, height, and each has a (x, y) camefrom
+cameFrom = zeros(width, height, 2) % width, height, and each has a (x, y) camefrom
 
 g_score = Inf(width, height)
 g_score(start) = 0
