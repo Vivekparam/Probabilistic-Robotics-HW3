@@ -57,27 +57,27 @@ ylim([1,size(displaymap,1)]);
 
 % use euclidean distance from goal as heuristic
 
-[width, height] = size(envmap) % get width and height
+[width, height] = size(envmap); % get width and height
 
 curState = start
 % openStates = []
-cameFrom = NaN(width, height, 2) % width, height, and each has a (x, y) camefrom
+cameFrom = NaN(width, height, 2); % width, height, and each has a (x, y) 
 
-g_score = Inf(width, height)
-g_score(start) = 0
+g_score = Inf(width, height);
+g_score(start(2), start(1)) = 0;
 
-f_score = Inf(width, height)
-f_score(start) = distance(start, goal)
+f_score = Inf(width, height);
+f_score(start(2), start(1)) = distance(start, goal);
 
 
 ct = 0;
-while(curState(1) ~= goal(1) && curState(2) ~= goal(2))
+while(curState(1) ~= goal(1) || curState(2) ~= goal(2))
     % extract x and y
-    curX = curState(1)
-    curY = curState(2)
+    curX = curState(1);
+    curY = curState(2);
     
     % Mark current state as closed
-    displaymap(curState(2), curState(1)) = 3
+    displaymap(curState(2), curState(1)) = 3;
     
    
     for col=(curX - 1):(curX + 1)
@@ -97,21 +97,22 @@ while(curState(1) ~= goal(1) && curState(2) ~= goal(2))
             continue
         end   
         % calculate length of this path
-        tentative_g_score = g_score(curY, curX) + 1 % cost of motion always 1
+        tentative_g_score = g_score(curState(2), curState(1)) + 1; % cost of motion always 1
         
         if displaymap(row, col) ~= 2
-            displaymap(row, col) = 2 % if not already open, open this node
-        else if tentative_g_score >= g_score(row, col) % this is a worse path to this location, move on
+            displaymap(row, col) = 2; % if not already open, open this node
+        elseif tentative_g_score >= g_score(row, col) % this is a worse path to this location, move on
             continue
         end 
         % if we get here, then this is our best path so far
-        cameFrom(row, col) = [curX, curY]
-        g_score(row, col) = tentative_g_score
-        f_score(row, col) = tentative_g_score + distance([col, row], goal)
+        cameFrom(row, col, :) = [curX, curY];
+        g_score(row, col) = tentative_g_score;
+        f_score(row, col) = tentative_g_score + epsilon*distance([col, row], goal);
             
-        curState = min_state(f_score)
       end
     end 
+    [ curState(1), curState(2) ] = min_state(f_score, displaymap);
+
     % TODO: Run till goal state is reached or there are no open states
     % If state is open -> displaymap(state(2), state(1)) = 2
     % If state is closed -> displaymap(state(2), state(1)) = 3
@@ -128,7 +129,8 @@ while(curState(1) ~= goal(1) && curState(2) ~= goal(2))
     ct = ct+1;
 end
 
-fpath = reconstruct_path(cameFrom, goal)
+[ fpath, junk ] = reconstruct_path(cameFrom, goal);
+cost = f_score(goal(2), goal(1));
 
 % Final display before exit
 figure(fg);

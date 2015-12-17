@@ -52,9 +52,75 @@ ylim([1,size(envmap,1)]);
 % Use checkLimits.m to check for limits for the point robot. Round-off
 % states for collision checking.
 ct = 0;
-while(1)
+goalStateNotReached = true;
+[width, height] = size(envmap);
+
+
+cameFrom = NaN(width, height, 2); % width, height, and each has a (x, y) camefrom
+
+
+
+rrt = {}; % tree
+node.p = start;
+node.parent = node; % it is its own parent
+rrt{end+1} = node;
+
+fprintf('begin!');
+while(goalStateNotReached)
     
     % TODO: Run planning till goal reached
+    
+    % generate a random state 99% of the time, sample 
+    % the goal the 1% of the time
+    if mod(ct, 100) == 0
+        randState = goal;
+    else
+        randState = rand(2,1);
+        randState(1) = (randState(1) * width);
+        randState(2) = (randState(2) * height);
+    end
+    
+    if incollission_node(randState, envmap)
+        continue % this node is inside of an obstacle
+    end
+    
+    % find nearest neighbor to state
+    nearState = nearest_neighbor(randState, rrt);
+    
+    dist = distance(nearState, randState);
+    
+    if dist < deltaStep
+        newState = [ round(randState(1)), round(randState(2)) ] ;
+    else
+        distRatio = deltaStep / dist;
+        xDist = (randState(1) - nearState(1)) * distRatio;
+        yDist = (randState(2) - nearState(2)) * distRatio;
+        newX = nearState(1) + xDist;
+        newY = nearState(2) + yDist;
+        newState = [ round(newX), round(newY) ]; % draw edge to here
+    end
+    
+    if incollission_node(newState, envmap)
+        continue
+    end
+    
+    plot([ nearState(1) newState(1) ], [ nearState(2), newState(2) ], 'Color', [1, 0, 0]);
+    % drawnow;
+    % make sure edge wont collide
+    
+    
+    % add node to tree
+    newNode.p = newState;
+    newNode.parent = nearState;
+    rrt{end+1} = newNode;
+    
+    % keep track of where we came from
+    cameFrom(newState(2), newState(1), :) = [nearState(1) , nearState(2)];
+    
+    if newState(1) == goal(1) && newState(2) == goal(2)
+        % we did it!
+        goalStateNotReached = false;
+    end
     
     % Display intermittently - assumes that student plots the graph
     if ~mod(ct,200)
@@ -66,6 +132,8 @@ while(1)
     ct = ct+1; 
 end
 
+[fpath, cost] = reconstruct_path(cameFrom, goal);
+fprintf('done!');
 % Draw a final time before exiting
 figure(fg);
 drawnow;
